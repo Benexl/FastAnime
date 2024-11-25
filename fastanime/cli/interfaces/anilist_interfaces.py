@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import random
+import multiprocessing
 from typing import TYPE_CHECKING
 
 from click import clear
@@ -14,6 +15,7 @@ from yt_dlp.utils import sanitize_filename
 
 from ...anilist import AniList
 from ...constants import USER_CONFIG_PATH
+from ...libs.discord import discord
 from ...libs.fzf import fzf
 from ...libs.rofi import Rofi
 from ...Utility.data import anime_normalizer
@@ -33,6 +35,8 @@ if TYPE_CHECKING:
     from ..config import Config
     from ..utils.tools import FastAnimeRuntimeState
 
+def discord_updater(show,episode):
+    discord.discord_connect(show,episode)
 
 def calculate_percentage_completion(start_time, end_time):
     """helper function used to calculate the difference between two timestamps in seconds
@@ -507,6 +511,11 @@ def provider_anime_episode_servers_menu(
         "[bold magenta] Episode: [/]",
         current_episode_number,
     )
+
+    # update discord activity for user
+    discord_proc = multiprocessing.Process(target=discord_updater,args=(provider_anime_title,current_episode_number))
+    discord_proc.start()
+
     # try to get the timestamp you left off from if available
     start_time = config.watch_history.get(str(anime_id_anilist), {}).get(
         "episode_stopped_at", "0"
@@ -588,6 +597,9 @@ def provider_anime_episode_servers_menu(
             player=config.player,
         )
     print("Finished at: ", stop_time)
+
+    # stop discord activity updater
+    discord_proc.terminate()
 
     # update_watch_history
     # this will try to update the episode to be the next episode if delta has reached a specific threshhold
