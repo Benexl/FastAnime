@@ -12,6 +12,7 @@ dependencies = [
   "rich>=13.9.2",
   "thefuzz>=0.22.1",
   "yt-dlp>=2024.10.7",
+  "discord-rich-presence>=1.1.0",
 ]
 
 [project.scripts]

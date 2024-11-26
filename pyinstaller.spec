@@ -17,6 +17,7 @@ hiddenimports = [
     'python_mpv',
     'fuzzywuzzy',
     'fastanime',
+    'discord-rich-presence'
 ] + collect_submodules('fastanime')
 
 a = Analysis(
