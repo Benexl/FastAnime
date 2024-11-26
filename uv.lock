@@ -218,6 +218,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
+    { name = "discord-rich-presence", specifier = ">=1.1.0" },
     { name = "fastapi", extras = ["standard"], marker = "extra == 'api'", specifier = ">=0.115.0" },
     { name = "fastapi", extras = ["standard"], marker = "extra == 'standard'", specifier = ">=0.115.0" },
     { name = "inquirerpy", specifier = ">=0.3.4" },
