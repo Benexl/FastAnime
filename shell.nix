@@ -13,7 +13,6 @@ in pkgs.mkShell {
       python-pkgs.fastapi
       python-pkgs.thefuzz
       python-pkgs.plyer
-      python-pkgs.discord-rich-presence
     ]))
   ];
 }
