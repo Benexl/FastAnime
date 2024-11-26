@@ -513,7 +513,7 @@ def provider_anime_episode_servers_menu(
     )
 
     # update discord activity for user
-    if config.discord:
+    if config.discord == True:
         discord_proc = multiprocessing.Process(target=discord_updater,args=(provider_anime_title,current_episode_number))
         discord_proc.start()
 
@@ -600,7 +600,7 @@ def provider_anime_episode_servers_menu(
     print("Finished at: ", stop_time)
 
     # stop discord activity updater
-    if config.discord:
+    if config.discord == True:
         discord_proc.terminate()
 
     # update_watch_history
