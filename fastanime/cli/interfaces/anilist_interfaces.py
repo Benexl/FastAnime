@@ -513,8 +513,9 @@ def provider_anime_episode_servers_menu(
     )
 
     # update discord activity for user
-    discord_proc = multiprocessing.Process(target=discord_updater,args=(provider_anime_title,current_episode_number))
-    discord_proc.start()
+    if config.discord:
+        discord_proc = multiprocessing.Process(target=discord_updater,args=(provider_anime_title,current_episode_number))
+        discord_proc.start()
 
     # try to get the timestamp you left off from if available
     start_time = config.watch_history.get(str(anime_id_anilist), {}).get(
@@ -599,7 +600,8 @@ def provider_anime_episode_servers_menu(
     print("Finished at: ", stop_time)
 
     # stop discord activity updater
-    discord_proc.terminate()
+    if config.discord:
+        discord_proc.terminate()
 
     # update_watch_history
     # this will try to update the episode to be the next episode if delta has reached a specific threshhold

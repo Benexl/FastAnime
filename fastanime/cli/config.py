@@ -38,6 +38,7 @@ class Config(object):
         "continue_from_history": "True",
         "default_media_list_tracking": "None",
         "downloads_dir": USER_VIDEOS_DIR,
+        "discord": "False",
         "disable_mpv_popen": "True",
         "episode_complete_at": "80",
         "ffmpegthumbnailer_seek_time": "-1",
@@ -101,6 +102,9 @@ class Config(object):
         )
         self.default_media_list_tracking = self.configparser.get(
             "general", "default_media_list_tracking"
+        )
+        self.discord = self.configparser.getboolean(
+            "general", "discord"
         )
         self.disable_mpv_popen = self.configparser.getboolean(
             "stream", "disable_mpv_popen"
@@ -421,6 +425,10 @@ use_persistent_provider_store = {self.use_persistent_provider_store}
 # 0 will disable recent anime tracking
 recent = {self.recent}
 
+# enable or disable discord activity updater
+# if you want to enable it, please follow the lnik below to register the app with discord account
+# https://discord.com/oauth2/authorize?client_id=1310622369022476428
+discord = {self.discord}
 
 [stream]
 # the quality of the stream [1080,720,480,360]
@@ -553,7 +561,7 @@ player = {self.player}
 #
 # HOPE YOU ENJOY FASTANIME AND BE SURE TO STAR THE PROJECT ON GITHUB
 # https://github.com/Benex254/FastAnime
-#
+# 
 """
         return current_config_state
 
