@@ -385,8 +385,6 @@ def provider_anime_episode_servers_menu(
     current_episode_number: str = (
         fastanime_runtime_state.provider_current_episode_number
     )
-    provider_anime_title: str = fastanime_runtime_state.provider_anime_title
-    anime_id_anilist: int = fastanime_runtime_state.selected_anime_id_anilist
     provider_anime: "Anime" = fastanime_runtime_state.provider_anime
 
     server_name = ""
@@ -507,7 +505,29 @@ def provider_anime_episode_servers_menu(
     fastanime_runtime_state.provider_current_server = selected_server
     fastanime_runtime_state.provider_current_server_name = server_name
 
-    # play video
+    if fastanime_runtime_state.selected_anime_media_action == "Stream":
+        # play video
+        provider_anime_play_stream(config, fastanime_runtime_state)
+    elif fastanime_runtime_state.selected_anime_media_action == "Download":
+        provider_anime_download_stream(config, fastanime_runtime_state)
+
+
+def provider_anime_play_stream(
+    config: Config, fastanime_runtime_state: FastAnimeRuntimeState
+):
+
+    # user config
+    anime_provider = config.anime_provider
+
+    current_episode_number: str = (
+        fastanime_runtime_state.provider_current_episode_number
+    )
+    provider_anime_title: str = fastanime_runtime_state.provider_anime_title
+    anime_id_anilist: int = fastanime_runtime_state.selected_anime_id_anilist
+
+    current_stream_link = fastanime_runtime_state.provider_current_episode_stream_link
+    selected_server = fastanime_runtime_state.provider_current_server
+
     print(
         "[bold magenta]Now playing:[/]",
         provider_anime_title,
@@ -831,9 +851,196 @@ def fetch_anime_episode(
         return media_actions_menu(config, fastanime_runtime_state)
 
     fastanime_runtime_state.provider_anime = provider_anime
-    provider_anime_episodes_menu(config, fastanime_runtime_state)
+    if fastanime_runtime_state.selected_anime_media_action == "Stream":
+        provider_anime_episodes_menu(config, fastanime_runtime_state)
+    elif fastanime_runtime_state.selected_anime_media_action == "Download":
+        download_options_menu(config, fastanime_runtime_state)
 
 
+#
+#   ---- ANIME DOWNLOAD MENU ----
+#
+
+
+def download_options_menu(
+    config: "Config", fastanime_runtime_state: "FastAnimeRuntimeState"
+):
+    options = ["Download all", "Download selected", "Back"]
+    download_option: str = ""
+    if config.use_fzf:
+        download_option = fzf.run(
+            options,
+            "Enter your preferred download option for the current anime",
+        )
+    elif config.use_rofi:
+        download_option = Rofi.run(
+            options,
+            "Enter your preferred download option for the current anime",
+        )
+    else:
+        download_option = fuzzy_inquirer(
+            options,
+            "Enter your preferred download option for the current anime",
+        )
+
+    selected_episodes: list[str] = []
+    if download_option == "Download all":
+
+        # User config
+        translation_type: str = config.translation_type.lower()
+
+        selected_episodes = sorted(
+            fastanime_runtime_state.provider_anime["availableEpisodesDetail"][
+                translation_type
+            ],
+            key=float,
+        )
+
+    elif download_option == "Download selected":
+        selected_episodes = select_multiple_episodes(config, fastanime_runtime_state)
+
+        if selected_episodes == []:
+            download_options_menu(config, fastanime_runtime_state)
+            return
+
+    elif download_option == "Back":
+        media_actions_menu(config, fastanime_runtime_state)
+        return
+
+    else:
+        print("Invalid option")
+        download_options_menu(config, fastanime_runtime_state)
+        return
+
+    for episode in selected_episodes:
+        fastanime_runtime_state.provider_current_episode_number = episode
+
+        # Next interface
+        # Handles downloading from fastanime_runtime_state.selected_anime_media_action
+        provider_anime_episode_servers_menu(config, fastanime_runtime_state)
+
+
+def select_multiple_episodes(
+    config: "Config", fastanime_runtime_state: "FastAnimeRuntimeState"
+):
+    """A menu that handles selection of episodes. Can be used to select multiple episodes
+
+    Args:
+        config: [TODO:description]
+        fastanime_runtime_state: [TODO:description]
+    """
+    # user config
+    translation_type: str = config.translation_type.lower()
+
+    # runtime configuration
+    anime_title: str = fastanime_runtime_state.provider_anime_title
+    provider_anime: "Anime" = fastanime_runtime_state.provider_anime
+
+    available_episodes = sorted(
+        provider_anime["availableEpisodesDetail"][translation_type], key=float
+    )
+
+    selected_episodes: list[str] = (
+        []
+    )  # Use str instead of int to deal with special/recap episodes
+    selected_entry: str = ""
+
+    choices = [
+        "Select till top",
+        *list(map(lambda x: f"[ ] {x}", available_episodes)),  # Convert to [ ] <num>
+        "Select till end",
+        "Select all in between",
+        "Download",
+        "Back",
+    ]
+
+    preview = None
+    # if config.preview:
+    #     from .utils import get_fzf_episode_preview
+    #
+    #     e = fastanime_runtime_state.selected_anime_anilist["episodes"]
+    #     if e:
+    #         eps = range(0, e + 1)
+    #     else:
+    #         eps = available_episodes
+    #
+    #     preview = get_fzf_episode_preview(
+    #         fastanime_runtime_state.selected_anime_anilist, eps
+    #     )
+    #     # eps = [f"[ ] {ep}" for ep in eps]
+
+    preselect_index = 1
+
+    while selected_entry != "Download":
+
+        if config.use_fzf:
+            selected_entry = fzf.run(
+                choices,
+                prompt="Select Episode",
+                header=anime_title,
+                preview=preview,
+                preselect=preselect_index,
+            )
+        elif config.use_rofi:
+            selected_entry = Rofi.run(
+                choices, "Select Episode", preselect=preselect_index
+            )
+        else:
+            selected_entry = fuzzy_inquirer(
+                choices,
+                "Select Episode",
+            )
+
+        if selected_entry == "Back":
+            return []
+
+        elif selected_entry == "Select till top" and selected_episodes != []:
+            # Select all episodes from the top to the first selected episode
+            for i in range(1, int(choices.index(f"[*] {selected_episodes[0]}"))):
+                selected_episodes.append(choices[i][4:])
+            preselect_index = choices.index("Select till top")
+
+        elif selected_entry == "Select till end" and selected_episodes != []:
+            # Select all episodes from the last selected episode to the end
+            for i in range(
+                choices.index(f"[*] {selected_episodes[-1]}") + 1,
+                choices.index(selected_entry),
+            ):
+                selected_episodes.append(choices[i][4:])
+            preselect_index = choices.index("Select till end")
+
+        elif selected_entry == "Select all in between" and selected_episodes != []:
+            # Select all episodes in between the first and last selected episodes
+            for i in range(
+                choices.index(f"[*] {selected_episodes[0]}") + 1,
+                choices.index(f"[*] {selected_episodes[-1]}"),
+            ):
+                selected_episodes.append(choices[i][4:])
+            preselect_index = choices.index("Select all in between")
+        elif selected_entry.startswith("[ ] "):
+            selected_episodes.append(selected_entry[4:])
+            preselect_index = choices.index(selected_entry) + 1
+
+        elif selected_entry.startswith("[*] "):
+            selected_episodes.remove(selected_entry[4:])
+            preselect_index = choices.index(selected_entry) + 1
+
+        # Remake the choices list
+        selected_episodes = list(set(selected_episodes))  # Remove duplicates
+        selected_episodes.sort(key=float)
+        for i in range(1, len(available_episodes)):
+            if choices[i][4:] in selected_episodes:
+                choices[i] = f"[*] {choices[i][4:]}"
+            else:
+                choices[i] = f"[ ] {choices[i][4:]}"
+
+    return selected_episodes
+
+
+def provider_anime_download_stream(
+    config: "Config", fastanime_runtime_state: "FastAnimeRuntimeState"
+):
+    pass
 #
 #   ---- ANIME PROVIDER SEARCH RESULTS MENU ----
 #
@@ -961,8 +1168,19 @@ def anime_provider_search_results_menu(
     fastanime_runtime_state.progress_tracking = config.watch_history.get(
         str(fastanime_runtime_state.selected_anime_id_anilist), {}
     ).get("progress_tracking", "prompt")
-    set_prefered_progress_tracking(config, fastanime_runtime_state)
-    fetch_anime_episode(config, fastanime_runtime_state)
+    if fastanime_runtime_state.selected_anime_media_action == "Stream":
+        set_prefered_progress_tracking(config, fastanime_runtime_state)
+        fetch_anime_episode(config, fastanime_runtime_state)
+    elif fastanime_runtime_state.selected_anime_media_action == "Download":
+        fetch_anime_episode(config, fastanime_runtime_state)
+    else:
+        print("Unknown media action")
+        if not config.use_rofi:
+            input("Enter to continue...")
+        else:
+            if not Rofi.confirm("Unknown media action!!Enter to continue..."):
+                exit(1)
+        media_actions_menu(config, fastanime_runtime_state)
 
 
 #
@@ -1337,6 +1555,8 @@ def media_actions_menu(
             config: [TODO:description]
             fastanime_runtime_state: [TODO:description]
         """
+
+        fastanime_runtime_state.selected_anime_media_action = "Stream"
         anime_provider_search_results_menu(config, fastanime_runtime_state)
 
     def _select_episode_to_stream(
@@ -1349,6 +1569,7 @@ def media_actions_menu(
             fastanime_runtime_state: [TODO:description]
         """
         config.continue_from_history = False
+        fastanime_runtime_state.selected_anime_media_action = "Stream"
         anime_provider_search_results_menu(config, fastanime_runtime_state)
 
     def _set_progress_tracking(
@@ -1409,10 +1630,25 @@ def media_actions_menu(
         }
         anilist_results_menu(config, fastanime_runtime_state)
 
+    def _download_anime(
+        config: "Config", fastanime_runtime_state: "FastAnimeRuntimeState"
+    ):
+        """helper function to go to the next menu containing download options respecting your config
+
+        Args:
+            config: [TODO:description]
+            fastanime_runtime_state: [TODO:description]
+        """
+
+        fastanime_runtime_state.selected_anime_media_action = "Download"
+
+        anime_provider_search_results_menu(config, fastanime_runtime_state)
+
     icons = config.icons
     options = {
         f"{'📽️ ' if icons else ''}Stream ({progress}/{episodes_total})": _stream_anime,
         f"{'📽️ ' if icons else ''}Episodes": _select_episode_to_stream,
+        f"{'  ' if icons else ''}Download": _download_anime,
         f"{'📼 ' if icons else ''}Watch Trailer": _watch_trailer,
         f"{'✨ ' if icons else ''}Score Anime": _score_anime,
         f"{'✨ ' if icons else ''}Progress Tracking": _set_progress_tracking,
