@@ -1055,33 +1055,36 @@ def download_anime(config: "Config", fastanime_runtime_state: "FastAnimeRuntimeS
     episodes = sorted(
         anime["availableEpisodesDetail"][config.translation_type], key=float
     )
-    episode_range = Prompt.ask("Enter episode range (e.g 1:12 or 1:12:2 or 1: or :12):")
-    if episode_range:
-        if ":" in episode_range:
-            ep_range_tuple = episode_range.split(":")
-            if len(ep_range_tuple) == 2 and all(ep_range_tuple):
-                episodes_start, episodes_end = ep_range_tuple
-                episodes_range = episodes[int(episodes_start) - 1: int(episodes_end)]
-            elif len(ep_range_tuple) == 3 and all(ep_range_tuple):
-                episodes_start, episodes_end, step = ep_range_tuple
-                episodes_range = episodes[
-                    int(episodes_start) - 1: int(episodes_end) : int(step)
-                ]
-            else:
-                episodes_start, episodes_end = ep_range_tuple
-                if episodes_start.strip():
-                    episodes_range = episodes[int(episodes_start) - 1 :]
-                elif episodes_end.strip():
-                    episodes_range = episodes[: int(episodes_end)]
+    episode_ranges = Prompt.ask("Enter episode ranges (e.g 1:12 or 1:12:2 or 1: or :12 or 5)").split(" ")
+    episodes_range = []
+    if episode_ranges != [""]:
+        for episode_range in episode_ranges:
+            if ":" in episode_range:
+                ep_range_tuple = episode_range.split(":")
+                if len(ep_range_tuple) == 2 and all(ep_range_tuple):
+                    episodes_start, episodes_end = ep_range_tuple
+                    episodes_range += episodes[int(episodes_start) - 1: int(episodes_end)]
+                elif len(ep_range_tuple) == 3 and all(ep_range_tuple):
+                    episodes_start, episodes_end, step = ep_range_tuple
+                    episodes_range += episodes[
+                        int(episodes_start) - 1: int(episodes_end) : int(step)
+                    ]
                 else:
-                    episodes_range = episodes
-        else:
-            episodes_range = episodes[int(episode_range) :]
-        print(f"[green bold]Downloading: [/] {episodes_range}")
+                    episodes_start, episodes_end = ep_range_tuple
+                    if episodes_start.strip():
+                        episodes_range += episodes[int(episodes_start) - 1 :]
+                    elif episodes_end.strip():
+                        episodes_range += episodes[: int(episodes_end)]
+                    else:
+                        episodes_range += episodes
+            else:
+                episodes_range += ([episode_range] if episode_range in episodes else [])
 
     else:
         episodes_range = sorted(episodes, key=float)
-        print(f"[green bold]Downloading: [/] {episodes_range}")
+
+    episodes_range = list(dict.fromkeys(episodes_range)) # To preserve order while removing duplicates
+    print(f"[green bold]Downloading: [/] {episodes_range}")
 
     if config.normalize_titles:
         from ...libs.common.mini_anilist import get_basic_anime_info_by_title
