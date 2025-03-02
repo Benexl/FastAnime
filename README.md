@@ -837,6 +837,6 @@ Show your support by starring the GitHub repository.
 
 > [!IMPORTANT]
 >
-> This project currently scrapes allanime, hianime, nyaa, yugen and animepahe.
+> This project currently scrapes allanime, hianime, nyaa and animepahe.
 > The developer(s) of this application does not have any affiliation with the content providers available, and this application hosts zero content.
 > [DISCLAIMER](https://github.com/Benexl/FastAnime/blob/master/DISCLAIMER.md)
