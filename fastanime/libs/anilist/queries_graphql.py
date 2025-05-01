@@ -846,6 +846,7 @@ query ($id: Int) {
       nodes {
         id
         idMal
+        type
         title {
           english
           romaji
