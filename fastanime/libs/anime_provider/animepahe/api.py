@@ -75,6 +75,7 @@ class AnimePahe(AnimeProvider):
         session_id,
         params,
         page,
+        standardized_episode_number,
     ):
         response = self.session.get(ANIMEPAHE_ENDPOINT, params=params)
         response.raise_for_status()
@@ -107,12 +108,23 @@ class AnimePahe(AnimeProvider):
                     "sort": "episode_asc",
                 },
                 page=page,
+                standardized_episode_number=standardized_episode_number,
             )
+        else: 
+                for episode in data.get("data", []):
+                    if episode["episode"] % 1 == 0:
+                        standardized_episode_number += 1
+                        episode.update({"episode": standardized_episode_number})
+                    else:
+                        standardized_episode_number += episode["episode"] % 1
+                        episode.update({"episode": standardized_episode_number})
+                        standardized_episode_number = int(standardized_episode_number)
         return data
 
     @debug_provider
     def get_anime(self, session_id: str, **kwargs):
         page = 1
+        standardized_episode_number = 0
         if d := self.store.get(str(session_id), "search_result"):
             anime_result: "AnimePaheSearchResult" = d
             data: "AnimePaheAnimePage" = {}  # pyright:ignore
@@ -127,6 +139,7 @@ class AnimePahe(AnimeProvider):
                     "page": page,
                 },
                 page=page,
+                standardized_episode_number=standardized_episode_number,
             )
 
             if not data:
