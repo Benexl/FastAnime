@@ -42,6 +42,7 @@ class Config(object):
     default_config = {
         "auto_next": "False",
         "menu_order": "",
+        "manga_viewer": "feh",
         "auto_select": "True",
         "cache_requests": "true",
         "check_for_updates": "True",
@@ -187,6 +188,7 @@ class Config(object):
         self.skip = self.configparser.getboolean("stream", "skip")
         self.sort_by = self.configparser.get("anilist", "sort_by")
         self.menu_order = self.configparser.get("general", "menu_order")
+        self.manga_viewer = self.configparser.get("general", "manga_viewer")
         self.sub_lang = self.configparser.get("general", "sub_lang")
         self.translation_type = self.configparser.get("stream", "translation_type")
         self.use_fzf = self.configparser.getboolean("general", "use_fzf")
@@ -475,6 +477,11 @@ mpv_args = {self.mpv_args}
 # example: kitty
 # useful incase of wanting to run sth like: kitty mpv --vo=kitty <url>
 mpv_pre_args = {self.mpv_pre_args}
+
+# choose manga viewer [feh/icat]
+# feh is the default and requires feh to be installed
+# icat is for kitty terminal users only
+manga_viewer = {self.manga_viewer}
 
 [stream]
 # the quality of the stream [1080,720,480,360]

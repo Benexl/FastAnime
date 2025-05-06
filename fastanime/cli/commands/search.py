@@ -66,7 +66,9 @@ def search(config: "Config", anime_titles: str, episode_range: str):
         from yt_dlp.utils import sanitize_filename
 
         from ...MangaProvider import MangaProvider
+
         from ..utils.feh import feh_manga_viewer
+        from ..utils.icat import icat_manga_viewer
 
         manga_title = anime_titles[0]
 
@@ -136,7 +138,12 @@ def search(config: "Config", anime_titles: str, episode_range: str):
             print(
                 f"[purple bold]Now Reading: [/] {search_result_manga_title} [cyan bold]Chapter:[/] {chapter_info['title']}"
             )
-            feh_manga_viewer(chapter_info["thumbnails"], str(chapter_info["title"]))
+            if config.manga_viewer == "feh":
+                feh_manga_viewer(chapter_info["thumbnails"], str(chapter_info["title"]))
+            elif config.manga_viewer == "icat":
+                icat_manga_viewer(
+                    chapter_info["thumbnails"], str(chapter_info["title"])
+                )
             if anilist_helper:
                 anilist_helper.update_anime_list(
                     {"mediaId": anilist_id, "progress": chapter_number}
