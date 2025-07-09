@@ -46,6 +46,7 @@ class YtDLPDownloader:
         force_ffmpeg=False,
         hls_use_mpegts=False,
         hls_use_h264=False,
+        nocheckcertificate=False,
     ):
         """Helper function that downloads anime given url and path details
 
@@ -87,6 +88,7 @@ class YtDLPDownloader:
             "format": vid_format,
             "compat_opts": ("allow-unsafe-ext",) if force_unknown_ext else tuple(),
             "progress_hooks": progress_hooks,
+            "nocheckcertificate": nocheckcertificate,
         }
         urls = [url]
         if sub:

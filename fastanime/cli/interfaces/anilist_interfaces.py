@@ -1022,6 +1022,7 @@ def download_anime(config: "Config", fastanime_runtime_state: "FastAnimeRuntimeS
     force_ffmpeg = Confirm.ask("Force ffmpeg", default=False)
     hls_use_mpegts = Confirm.ask("Use mpegts", default=False)
     hls_use_h264 = Confirm.ask("Use h264", default=False)
+    nocheckcertificate = True
 
     force_ffmpeg |= hls_use_mpegts or hls_use_h264
     anime_title = Prompt.ask(
@@ -1218,6 +1219,7 @@ def download_anime(config: "Config", fastanime_runtime_state: "FastAnimeRuntimeS
                 force_ffmpeg=force_ffmpeg,
                 hls_use_mpegts=hls_use_mpegts,
                 hls_use_h264=hls_use_h264,
+                nocheckcertificate=nocheckcertificate,
             )
         except Exception as e:
             print(e)

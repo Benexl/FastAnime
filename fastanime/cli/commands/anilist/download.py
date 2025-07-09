@@ -124,6 +124,11 @@ from .data import (
     help="Use H.264 (MP4) for hls streams, resulted in .mp4 file (useful for some streams: see Docs) (this option forces --force-ffmpeg to be True)",
 )
 @click.option(
+    "--no-check-certificates",
+    is_flag=True,
+    help="Suppress HTTPS certificate validation",
+)
+@click.option(
     "--max-results", "-M", type=int, help="The maximum number of results to show"
 )
 @click.pass_obj
@@ -149,6 +154,7 @@ def download(
     force_ffmpeg,
     hls_use_mpegts,
     hls_use_h264,
+    no_check_certificates,
     max_results,
 ):
     from rich import print
@@ -386,6 +392,7 @@ def download(
                         force_ffmpeg=force_ffmpeg,
                         hls_use_mpegts=hls_use_mpegts,
                         hls_use_h264=hls_use_h264,
+                        nocheckcertificate=no_check_certificates,
                     )
                 except Exception as e:
                     print(e)

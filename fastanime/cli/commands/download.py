@@ -129,6 +129,11 @@ if TYPE_CHECKING:
     is_flag=True,
     help="Use H.264 (MP4) for hls streams, resulted in .mp4 file (useful for some streams: see Docs) (this option forces --force-ffmpeg to be True)",
 )
+@click.option(
+    "--no-check-certificates",
+    is_flag=True,
+    help="Suppress HTTPS certificate validation",
+)
 @click.pass_obj
 def download(
     config: "Config",
@@ -145,6 +150,7 @@ def download(
     force_ffmpeg,
     hls_use_mpegts,
     hls_use_h264,
+    no_check_certificates,
 ):
     import time
 
@@ -208,6 +214,7 @@ def download(
                 force_ffmpeg,
                 hls_use_mpegts,
                 hls_use_h264,
+                no_check_certificates,
             )
             return
         search_results = search_results["results"]
@@ -262,6 +269,7 @@ def download(
                 force_ffmpeg,
                 hls_use_mpegts,
                 hls_use_h264,
+                no_check_certificates,
             )
             return
 
@@ -399,6 +407,7 @@ def download(
                     force_ffmpeg=force_ffmpeg,
                     hls_use_mpegts=hls_use_mpegts,
                     hls_use_h264=hls_use_h264,
+                    nocheckcertificate=no_check_certificates,
                 )
             except Exception as e:
                 print(e)
