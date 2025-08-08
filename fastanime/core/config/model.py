@@ -98,7 +98,7 @@ class GeneralConfig(BaseModel):
         default=defaults.GENERAL_PREFERRED_SPINNER,
         description=desc.GENERAL_PREFERRED_SPINNER,
     )
-    media_api: Literal["anilist", "jikan"] = Field(
+    media_api: Literal["anilist", "jikan", "tmdb"] = Field(
         default=defaults.GENERAL_API_CLIENT,
         description=desc.GENERAL_API_CLIENT,
     )
@@ -380,6 +380,25 @@ class JikanConfig(OtherConfig):
     )
 
 
+class TmdbConfig(OtherConfig):
+    """Configuration for the TMDB API."""
+
+    api_key: str = Field(
+        default="",
+        description="Your TMDB API key. Required for using TMDB.",
+    )
+    per_page: int = Field(
+        default=20,
+        gt=0,
+        le=50,
+        description="The number of results to return per page.",
+    )
+    preferred_language: str = Field(
+        default="en-US",
+        description="The preferred language for results.",
+    )
+
+
 class DownloadsConfig(OtherConfig):
     """Configuration for download related options"""
 
@@ -468,6 +487,10 @@ class AppConfig(BaseModel):
     jikan: JikanConfig = Field(
         default_factory=JikanConfig,
         description=desc.APP_JIKAN,
+    )
+    tmdb: TmdbConfig = Field(
+        default_factory=TmdbConfig,
+        description="Configuration for the TMDB API.",
     )
     fzf: FzfConfig = Field(
         default_factory=FzfConfig,
