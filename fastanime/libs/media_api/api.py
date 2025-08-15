@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 API_CLIENTS = {
     "anilist": ("fastanime.libs.media_api.anilist.api.AniListApi", "anilist"),
     "jikan": ("fastanime.libs.media_api.jikan.api.JikanApi", "jikan"),  # For the future
+    "tmdb": ("fastanime.libs.media_api.tmdb.api.TmdbApi", "tmdb"),
 }
 
 
